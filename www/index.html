@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Petit Bilingue</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#FFF8F0}
+#app{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;background:#FFF8F0;overflow:hidden}
+body{font-family:'Baloo 2','Helvetica Neue',sans-serif}
+
+/* ── HEADER ── */
+.header{
+  padding-top:calc(10px + env(safe-area-inset-top));
+  padding-bottom:6px;
+  background:#FFF8F0;
+  flex-shrink:0;
+  padding-left:10px;
+  padding-right:10px;
+}
+
+/* ROW 1 : lang toggle + titre + reset */
+.row1{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px}
+.lang-pair{display:flex;gap:5px;flex-shrink:0}
+.lang-btn{border:2px solid transparent;border-radius:50px;padding:5px 11px;font-family:'Baloo 2',sans-serif;font-size:15px;font-weight:700;cursor:pointer;background:#EDE8E0;color:#7A6A60;transition:all .2s;white-space:nowrap}
+.lang-btn.active{transform:scale(1.08);box-shadow:0 3px 10px rgba(0,0,0,.15)}
+.lang-btn.fr.active{background:#0055A4;color:white;border-color:#EF4135}
+.lang-btn.en.active{background:#012169;color:white;border-color:#CF142B}
+.app-title{font-size:17px;font-weight:800;color:#3D2B1F;text-align:center;flex:1;white-space:nowrap}
+.app-title span{color:#F5A623}
+.reset-btn{border:none;background:#EDE8E0;border-radius:50px;padding:5px 11px;font-family:'Baloo 2',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:#7A6A60;flex-shrink:0;white-space:nowrap}
+.reset-btn:active{transform:scale(0.93)}
+
+/* ROW 2 : score + étoiles + progress */
+.row2{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.score-badge{background:#F5A623;color:#3D2B1F;border-radius:50px;padding:3px 12px;font-weight:800;font-size:14px;white-space:nowrap;flex-shrink:0}
+.progress{flex:1;height:7px;background:#EDE8E0;border-radius:50px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#F5A623,#F9C752);border-radius:50px;transition:width .4s ease;will-change:width}
+.stars{font-size:15px;flex-shrink:0}
+
+/* ROW 3 : tabs catégories */
+.tabs{display:flex;gap:5px;justify-content:center;margin-bottom:5px;flex-wrap:wrap}
+.tab{border:none;padding:7px 10px;border-radius:50px;font-family:'Baloo 2',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;background:#EDE8E0;color:#7A6A60;white-space:nowrap}
+.tab.active{color:white;transform:scale(1.06);box-shadow:0 3px 10px rgba(0,0,0,.13)}
+.tab[data-cat="animaux"].active{background:#5BAD6F}
+.tab[data-cat="couleurs"].active{background:#4A90D9}
+.tab[data-cat="chiffres"].active{background:#9B6EC8}
+.tab[data-cat="corps"].active{background:#E87DA0}
+.tab[data-cat="fruits"].active{background:#E8594A}
+.tab[data-cat="alphabet"].active{background:#F5A623;color:#3D2B1F}
+
+/* ROW 4 : mode toggle */
+.mode-toggle{display:flex;gap:6px;justify-content:center;margin-bottom:6px}
+.mode-btn{border:2px solid #D4CAC0;padding:6px 16px;border-radius:50px;font-family:'Baloo 2',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:white;color:#7A6A60;transition:all .15s}
+.mode-btn.active{border-color:#F5A623;background:#F5A623;color:#3D2B1F}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;padding-left:11px;padding-right:11px}
+
+/* QUIZ BANNER */
+.quiz-banner{
+  display:flex;align-items:center;justify-content:space-between;
+  background:white;border-radius:16px;padding:10px 14px;margin-bottom:10px;
+  border:3px solid #F5A623;box-shadow:0 3px 10px rgba(245,166,35,.2);
+}
+.quiz-banner .q-emoji{font-size:46px;line-height:1;flex-shrink:0}
+.quiz-banner .q-text{flex:1;padding:0 10px}
+.quiz-banner .q-text p{font-size:15px;font-weight:700;color:#3D2B1F}
+.quiz-banner .q-text small{font-size:11px;color:#9A8A80;font-weight:600}
+.quit-btn{border:none;background:#EDE8E0;border-radius:50px;padding:6px 12px;font-family:'Baloo 2',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:#7A6A60;flex-shrink:0}
+.quit-btn:active{transform:scale(0.92)}
+
+/* GRILLES */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.card{background:#FFFFFF;border-radius:16px;padding:11px 7px 9px;text-align:center;cursor:pointer;border:3px solid transparent;transition:all .18s;user-select:none}
+.card:active{transform:scale(0.91)}
+.card.bounce{animation:bounce .35s ease}
+@keyframes bounce{0%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.95)}100%{transform:scale(1)}}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}100%{transform:translateX(0)}}
+.card-emoji{font-size:38px;display:block;margin-bottom:4px;line-height:1}
+.card-main{font-size:15px;font-weight:800;color:#3D2B1F;display:block;margin-top:2px}
+.card-hint{font-size:11px;font-weight:600;color:#9A8A80;display:block;margin-top:1px}
+.speak-btn{border:none;background:none;font-size:19px;cursor:pointer;padding:2px;display:block;margin:3px auto 0;transition:transform .15s}
+.speak-btn:active{transform:scale(0.75)}
+.quiz-mode .card{border:3px dashed #E0D8D0}
+.card.correct-answer{border-color:#5BAD6F!important;background:#F0FAF0!important}
+.card.wrong-guess{border-color:#E8594A!important;background:#FFF0EE!important;animation:shake .3s ease}
+.next-btn{display:block;margin:12px auto 0;background:#F5A623;border:none;border-radius:50px;padding:10px 28px;font-family:'Baloo 2',sans-serif;font-size:15px;font-weight:700;cursor:pointer;color:#3D2B1F}
+.next-btn:active{transform:scale(0.95)}
+
+/* ALPHABET */
+.alpha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.alpha-card{background:white;border-radius:13px;padding:9px 5px;text-align:center;cursor:pointer;border:3px solid transparent;transition:all .18s;user-select:none}
+.alpha-card:active{transform:scale(0.9)}
+.alpha-letter{font-size:30px;font-weight:800;line-height:1;color:#3D2B1F}
+.alpha-word{font-size:10px;color:#7A6A60;margin-top:3px;font-weight:600;line-height:1.2}
+
+/* CONFETTI */
+.confetti-piece{position:fixed;border-radius:2px;animation:fall linear forwards;pointer-events:none;z-index:9999}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* KIDS APPS PANEL */
+.kids-btn{border:none;background:#EDE8E0;border-radius:50px;padding:5px 10px;font-size:18px;cursor:pointer;flex-shrink:0}
+.kids-btn:active{transform:scale(0.9)}
+.kids-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:7000;display:flex;align-items:flex-end;justify-content:center}
+.kids-panel{background:#FFF8F0;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:70vh;display:flex;flex-direction:column}
+.kids-panel h3{font-size:16px;font-weight:800;color:#3D2B1F;text-align:center;margin-bottom:12px;flex-shrink:0}
+#kidsPanel{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+.kids-close{display:block;margin:14px auto 0;border:none;background:#EDE8E0;border-radius:50px;padding:8px 24px;font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:#7A6A60;flex-shrink:0}
+
+/* MODAL RAZ */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:8000;display:flex;align-items:center;justify-content:center}
+.modal-box{background:white;border-radius:22px;padding:24px 22px;max-width:280px;width:90%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.modal-box h2{font-size:20px;font-weight:800;color:#3D2B1F;margin-bottom:8px}
+.modal-box p{font-size:14px;color:#7A6A60;font-weight:600;margin-bottom:18px;line-height:1.4}
+.modal-btns{display:flex;gap:10px;justify-content:center}
+.modal-btns button{border:none;border-radius:50px;padding:10px 20px;font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{background:#EDE8E0;color:#7A6A60}
+.btn-confirm{background:#E8594A;color:white}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+
+    <!-- ROW 1 : langue | titre | reset -->
+    <div class="row1">
+      <div class="lang-pair">
+        <button class="lang-btn fr active" id="btnFR" onclick="setLang('fr')">🇫🇷</button>
+        <button class="lang-btn en" id="btnEN" onclick="setLang('en')">🇬🇧</button>
+      </div>
+      <div class="app-title">Petit <span>Bilingue</span></div>
+      <button class="reset-btn" id="resetBtn" onclick="askReset()">🔄 RAZ</button>
+      <button class="kids-btn" onclick="openKids()">📱</button>
+    </div>
+
+    <!-- ROW 2 : score + progress + étoiles -->
+    <div class="row2">
+      <div class="score-badge">⭐ <span id="scoreVal">0</span> pts</div>
+      <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+      <div class="stars" id="starDisplay">🌟</div>
+    </div>
+
+    <!-- ROW 3 : catégories -->
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-cat="animaux">🐾 <span class="tl">Animaux</span></button>
+      <button class="tab" data-cat="couleurs">🎨 <span class="tl">Couleurs</span></button>
+      <button class="tab" data-cat="chiffres">🔢 <span class="tl">Chiffres</span></button>
+      <button class="tab" data-cat="corps">👶 <span class="tl">Corps</span></button>
+      <button class="tab" data-cat="fruits">🍎 <span class="tl">Fruits</span></button>
+      <button class="tab" data-cat="alphabet">🔤 ABC</button>
+    </div>
+
+    <!-- ROW 4 : mode -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeDiscover" onclick="setMode('discover')">👀 <span id="mdDisc">Découvrir</span></button>
+      <button class="mode-btn" id="modeQuiz" onclick="setMode('quiz')">🎯 <span id="mdQuiz">Quiz</span></button>
+    </div>
+
+  </div><!-- /header -->
+
+  <div class="main">
+    <div id="quizQuestion" style="display:none"></div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<!-- Kids Apps Panel -->
+<div class="kids-overlay" id="kidsOverlay" style="display:none" onclick="closeKids()">
+  <div class="kids-panel" onclick="event.stopPropagation()">
+    <h3 id="kidsPanelTitle">📱 Nos autres apps pour enfants</h3>
+    <div id="kidsPanel"></div>
+    <button class="kids-close" onclick="closeKids()" id="kidsCloseBtn">Fermer</button>
+  </div>
+</div>
+
+<!-- Modal RAZ -->
+<div class="modal-overlay" id="modalRaz" style="display:none">
+  <div class="modal-box">
+    <h2>🔄 Remettre à zéro ?</h2>
+    <p id="modalTxt">Tous les points seront effacés. On recommence ?</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmReset()">Oui !</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════ DATA ══════════════ */
+const DATA = {
+  animaux:[
+    {emoji:'🐶',fr:'Chien',en:'Dog'},
+    {emoji:'🐱',fr:'Chat',en:'Cat'},
+    {emoji:'🐻',fr:'Ours',en:'Bear'},
+    {emoji:'🐸',fr:'Grenouille',en:'Frog'},
+    {emoji:'🦋',fr:'Papillon',en:'Butterfly'},
+    {emoji:'🐘',fr:'Éléphant',en:'Elephant'},
+    {emoji:'🦁',fr:'Lion',en:'Lion'},
+    {emoji:'🐔',fr:'Poule',en:'Chicken'},
+    {emoji:'🐟',fr:'Poisson',en:'Fish'},
+    {emoji:'🐰',fr:'Lapin',en:'Rabbit'},
+    {emoji:'🦊',fr:'Renard',en:'Fox'},
+    {emoji:'🐧',fr:'Pingouin',en:'Penguin'},
+  ],
+  couleurs:[
+    {emoji:'🔴',fr:'Rouge',en:'Red',bg:'#FFECEC'},
+    {emoji:'🔵',fr:'Bleu',en:'Blue',bg:'#ECF3FF'},
+    {emoji:'🟡',fr:'Jaune',en:'Yellow',bg:'#FFFBEC'},
+    {emoji:'🟢',fr:'Vert',en:'Green',bg:'#ECFFED'},
+    {emoji:'🟠',fr:'Orange',en:'Orange',bg:'#FFF3EC'},
+    {emoji:'🟣',fr:'Violet',en:'Purple',bg:'#F5ECFF'},
+    {emoji:'🩷',fr:'Rose',en:'Pink',bg:'#FFECF5'},
+    {emoji:'⬛',fr:'Noir',en:'Black',bg:'#F0F0F0'},
+    {emoji:'⬜',fr:'Blanc',en:'White',bg:'#FAFAFA'},
+    {emoji:'🤎',fr:'Marron',en:'Brown',bg:'#F5EDE0'},
+    {emoji:'🩶',fr:'Gris',en:'Grey',bg:'#F0F0F4'},
+    {emoji:'🟡',fr:'Or',en:'Gold',bg:'#FFF8E0'},
+  ],
+  chiffres:[
+    {emoji:'1️⃣',fr:'Un',en:'One'},
+    {emoji:'2️⃣',fr:'Deux',en:'Two'},
+    {emoji:'3️⃣',fr:'Trois',en:'Three'},
+    {emoji:'4️⃣',fr:'Quatre',en:'Four'},
+    {emoji:'5️⃣',fr:'Cinq',en:'Five'},
+    {emoji:'6️⃣',fr:'Six',en:'Six'},
+    {emoji:'7️⃣',fr:'Sept',en:'Seven'},
+    {emoji:'8️⃣',fr:'Huit',en:'Eight'},
+    {emoji:'9️⃣',fr:'Neuf',en:'Nine'},
+    {emoji:'🔟',fr:'Dix',en:'Ten'},
+    {emoji:'1️⃣1️⃣',fr:'Onze',en:'Eleven'},
+    {emoji:'1️⃣2️⃣',fr:'Douze',en:'Twelve'},
+  ],
+  corps:[
+    {emoji:'👁️',fr:'Œil',en:'Eye'},
+    {emoji:'👂',fr:'Oreille',en:'Ear'},
+    {emoji:'👃',fr:'Nez',en:'Nose'},
+    {emoji:'👄',fr:'Bouche',en:'Mouth'},
+    {emoji:'✋',fr:'Main',en:'Hand'},
+    {emoji:'🦶',fr:'Pied',en:'Foot'},
+    {emoji:'💇',fr:'Tête',en:'Head'},
+    {emoji:'🦷',fr:'Dent',en:'Tooth'},
+    {emoji:'🤲',fr:'Bras',en:'Arm'},
+    {emoji:'🦵',fr:'Jambe',en:'Leg'},
+    {emoji:'👆',fr:'Doigt',en:'Finger'},
+    {emoji:'🫃',fr:'Ventre',en:'Belly'},
+  ],
+  fruits:[
+    {emoji:'🍎',fr:'Pomme',en:'Apple'},
+    {emoji:'🍌',fr:'Banane',en:'Banana'},
+    {emoji:'🍓',fr:'Fraise',en:'Strawberry'},
+    {emoji:'🍊',fr:'Orange',en:'Orange'},
+    {emoji:'🍇',fr:'Raisin',en:'Grapes'},
+    {emoji:'🍋',fr:'Citron',en:'Lemon'},
+    {emoji:'🍉',fr:'Pastèque',en:'Watermelon'},
+    {emoji:'🍑',fr:'Pêche',en:'Peach'},
+    {emoji:'🥝',fr:'Kiwi',en:'Kiwi'},
+    {emoji:'🍒',fr:'Cerise',en:'Cherry'},
+    {emoji:'🥭',fr:'Mangue',en:'Mango'},
+    {emoji:'🍍',fr:'Ananas',en:'Pineapple'},
+  ],
+};
+
+const ALPHA = {
+  fr:{words:{A:'Abeille 🐝',B:'Ballon 🎈',C:'Chat 🐱',D:'Dino 🦕',E:'Éléphant 🐘',F:'Fleur 🌸',G:'Grenouille 🐸',H:'Hibou 🦉',I:'Igloo 🏠',J:'Jaguar 🐆',K:'Koala 🐨',L:'Lion 🦁',M:'Maison 🏡',N:'Nuit 🌙',O:'Ours 🐻',P:'Papillon 🦋',Q:'Quille 🎳',R:'Rose 🌹',S:'Soleil ☀️',T:'Tortue 🐢',U:'Uniforme 👕',V:'Vache 🐄',W:'Wombat 🦘',X:'Xylophone 🎵',Y:'Yaourt 🥛',Z:'Zèbre 🦓'},like:'comme',lang:'fr-FR'},
+  en:{words:{A:'Apple 🍎',B:'Butterfly 🦋',C:'Cat 🐱',D:'Dog 🐶',E:'Elephant 🐘',F:'Fish 🐟',G:'Grapes 🍇',H:'Horse 🐴',I:'Ice cream 🍦',J:'Jellyfish 🪼',K:'Kite 🪁',L:'Lion 🦁',M:'Moon 🌙',N:'Nest 🐦',O:'Owl 🦉',P:'Penguin 🐧',Q:'Queen 👑',R:'Rainbow 🌈',S:'Sun ☀️',T:'Turtle 🐢',U:'Umbrella ☂️',V:'Violin 🎻',W:'Whale 🐋',X:'Xylophone 🎵',Y:'Yo-yo 🪀',Z:'Zebra 🦓'},like:'for',lang:'en-GB'},
+};
+
+/* seuils de confetti : points nécessaires pour déclencher */
+const CONFETTI_THRESHOLDS = [5,10,20,30,50,75,100];
+
+const I18N = {
+  fr:{title:'Petit <span>Bilingue</span>',score:'pts',discover:'👀 Découvrir',quiz:'🎯 Quiz',tabs:{animaux:'Animaux',couleurs:'Couleurs',chiffres:'Chiffres',corps:'Corps',fruits:'Fruits'},quizQ:'Quel est ce mot en anglais ?',quizHint:'Touche la bonne réponse !',bravo:'Bravo ! ',non:'Non... c\'est ',next:'Question suivante ➡️',quit:'✖ Quitter',speakLang:'en-GB',showLang:'en',resetTitle:'Remettre à zéro ?',resetMsg:'Tous les points seront effacés. On recommence ?',cancel:'Annuler',confirm:'Oui !'},
+  en:{title:'Petit <span>Bilingue</span>',score:'pts',discover:'👀 Discover',quiz:'🎯 Quiz',tabs:{animaux:'Animals',couleurs:'Colours',chiffres:'Numbers',corps:'Body',fruits:'Fruits'},quizQ:'What is this word in French?',quizHint:'Tap the right answer!',bravo:'Bravo! ',non:'No... it\'s ',next:'Next question ➡️',quit:'✖ Quit',speakLang:'fr-FR',showLang:'fr',resetTitle:'Reset score?',resetMsg:'All points will be cleared. Start again?',cancel:'Cancel',confirm:'Yes!'},
+};
+
+/* ══════════════ STATE ══════════════ */
+const STORAGE_KEY = 'petitbilingue_score_v1';
+let score = parseInt(localStorage.getItem(STORAGE_KEY)||'0');
+let nextConfettiIdx = CONFETTI_THRESHOLDS.findIndex(t=>t>score); /* index du prochain seuil */
+if(nextConfettiIdx===-1) nextConfettiIdx=CONFETTI_THRESHOLDS.length;
+
+let currentCat='animaux', mode='discover', appLang='fr';
+let quizTarget=null, quizAnswered=false;
+
+/* ══════════════ UTILS ══════════════ */
+function t(){return I18N[appLang];}
+
+function speak(text,lang){
+  if(!('speechSynthesis' in window))return;
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang||t().speakLang;u.rate=0.82;u.pitch=1.2;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+function speakItem(item){speak(item[t().showLang],t().speakLang);}
+
+function saveScore(){localStorage.setItem(STORAGE_KEY,score);}
+
+function addScore(n){
+  const before=score;
+  score+=n;
+  saveScore();
+  document.getElementById('scoreVal').textContent=score;
+  document.getElementById('prog').style.width=Math.min(100,score)+'%';
+  const lvl=score<10?'🌟':score<25?'⭐⭐':score<50?'⭐⭐⭐':score<80?'⭐⭐⭐⭐':'🏆';
+  document.getElementById('starDisplay').textContent=lvl;
+
+  /* confetti seulement si on franchit un palier */
+  while(nextConfettiIdx<CONFETTI_THRESHOLDS.length && score>=CONFETTI_THRESHOLDS[nextConfettiIdx]){
+    launchConfetti();
+    nextConfettiIdx++;
+  }
+}
+
+function launchConfetti(){
+  const colors=['#F5A623','#4A90D9','#5BAD6F','#E87DA0','#9B6EC8','#E8594A'];
+  for(let i=0;i<28;i++){
+    const d=document.createElement('div');d.className='confetti-piece';
+    const sz=7+Math.random()*9;
+    d.style.cssText=`left:${Math.random()*100}%;top:-20px;background:${colors[i%colors.length]};width:${sz}px;height:${sz}px;animation-duration:${1+Math.random()*0.9}s;animation-delay:${Math.random()*0.4}s`;
+    document.body.appendChild(d);setTimeout(()=>d.remove(),2000);
+  }
+}
+
+/* ══════════════ LANG ══════════════ */
+function setLang(l){
+  appLang=l;
+  document.getElementById('btnFR').classList.toggle('active',l==='fr');
+  document.getElementById('btnEN').classList.toggle('active',l==='en');
+  updateStaticUI();
+  render();
+}
+
+function updateStaticUI(){
+  const i=t();
+  document.getElementById('mdDisc').textContent=i.discover.replace(/^[^ ]+ /,'');
+  document.getElementById('mdQuiz').textContent=i.quiz.replace(/^[^ ]+ /,'');
+  document.querySelectorAll('.tab[data-cat]').forEach(tab=>{
+    const tl=tab.querySelector('.tl');
+    if(tl&&i.tabs[tab.dataset.cat])tl.textContent=i.tabs[tab.dataset.cat];
+  });
+  document.getElementById('modalTxt').textContent=i.resetMsg;
+  document.querySelector('.modal-box h2').textContent='🔄 '+i.resetTitle;
+  document.querySelector('.btn-cancel').textContent=i.cancel;
+  document.querySelector('.btn-confirm').textContent=i.confirm;
+}
+
+/* ══════════════ MODE ══════════════ */
+function setMode(m){
+  if(currentCat==='alphabet'&&m==='quiz')return;
+  mode=m;
+  document.getElementById('modeDiscover').classList.toggle('active',m==='discover');
+  document.getElementById('modeQuiz').classList.toggle('active',m==='quiz');
+  render();
+}
+
+function quitQuiz(){
+  setMode('discover');
+}
+
+/* ══════════════ RESET ══════════════ */
+function askReset(){document.getElementById('modalRaz').style.display='flex';}
+function closeModal(){document.getElementById('modalRaz').style.display='none';}
+function confirmReset(){
+  score=0;nextConfettiIdx=0;saveScore();
+  document.getElementById('scoreVal').textContent='0';
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('starDisplay').textContent='🌟';
+  closeModal();
+}
+
+/* ══════════════ RENDER ══════════════ */
+function render(){
+  const qDiv=document.getElementById('quizQuestion');
+  const content=document.getElementById('content');
+  const i=t();
+
+  if(currentCat==='alphabet'){
+    qDiv.style.display='none';
+    content.innerHTML=renderAlpha();
+    return;
+  }
+
+  const items=DATA[currentCat];
+
+  if(mode==='quiz'){
+    /* quiz banner avec bouton Quitter */
+    const choices=startQuiz(items);
+    qDiv.style.display='block';
+    qDiv.innerHTML=`<div class="quiz-banner">
+      <span class="q-emoji">${quizTarget.emoji}</span>
+      <div class="q-text">
+        <p>${i.quizQ}</p>
+        <small>${i.quizHint}</small>
+      </div>
+      <button class="quit-btn" onclick="quitQuiz()">${i.quit}</button>
+    </div>`;
+
+    let html='<div class="grid quiz-mode">';
+    choices.forEach((item,idx)=>{
+      html+=`<div class="card" style="background:${item.bg||'#FFF'}" onclick="quizAnswer(${idx})" id="qcard_${idx}" data-key="${item.fr}">
+        <span class="card-emoji">${item.emoji}</span>
+        <span class="card-main">${item[i.showLang]}</span>
+      </div>`;
+    });
+    html+='</div>';
+    html+=`<button class="next-btn" onclick="render()">${i.next}</button>`;
+    content.innerHTML=html;
+  } else {
+    qDiv.style.display='none';
+    let html='<div class="grid">';
+    items.forEach((item,idx)=>{
+      const mainWord=item[i.showLang];
+      const hintWord=item[appLang==='fr'?'fr':'en'];
+      html+=`<div class="card" style="background:${item.bg||'#FFF'}" onclick="cardClick(${idx})" id="card_${idx}">
+        <span class="card-emoji">${item.emoji}</span>
+        <span class="card-main">${mainWord}</span>
+        <span class="card-hint">${hintWord}</span>
+        <button class="speak-btn" onclick="event.stopPropagation();speakItem(DATA['${currentCat}'][${idx}])">🔊</button>
+      </div>`;
+    });
+    html+='</div>';
+    content.innerHTML=html;
+  }
+}
+
+function renderAlpha(){
+  const al=ALPHA[t().showLang==='en'?'en':'fr'];
+  const bgs=['#FFE8EC','#E8F3FF','#FFFBEC','#F0FFE8','#F5ECFF','#E8FFF0'];
+  let html='<div class="alpha-grid">';
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((l,i)=>{
+    html+=`<div class="alpha-card" style="background:${bgs[i%6]}" onclick="alphaClick('${l}')">
+      <div class="alpha-letter">${l}</div>
+      <div class="alpha-word">${al.words[l]||l}</div>
+    </div>`;
+  });
+  html+='</div>';
+  return html;
+}
+
+/* ══════════════ INTERACTIONS ══════════════ */
+function startQuiz(items){
+  quizAnswered=false;
+  const shuffled=[...items].sort(()=>Math.random()-.5);
+  quizTarget=shuffled[0];
+  const n=Math.min(6,shuffled.length);
+  const choices=shuffled.slice(0,n);
+  if(!choices.find(c=>c.fr===quizTarget.fr))choices[Math.floor(Math.random()*n)]=quizTarget;
+  return choices.sort(()=>Math.random()-.5);
+}
+
+function cardClick(idx){
+  const el=document.getElementById('card_'+idx);
+  el.classList.add('bounce');setTimeout(()=>el.classList.remove('bounce'),350);
+  speakItem(DATA[currentCat][idx]);
+  addScore(1);
+}
+
+function quizAnswer(idx){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  const el=document.getElementById('qcard_'+idx);
+  const i=t();
+  if(el.dataset.key===quizTarget.fr){
+    el.classList.add('correct-answer');
+    speak(i.bravo+quizTarget[i.showLang],i.speakLang);
+    addScore(3);
+  } else {
+    el.classList.add('wrong-guess');
+    document.querySelectorAll('[id^="qcard_"]').forEach(c=>{
+      if(c.dataset.key===quizTarget.fr)c.classList.add('correct-answer');
+    });
+    speak(i.non+quizTarget[i.showLang],i.speakLang);
+  }
+}
+
+function alphaClick(l){
+  const al=ALPHA[t().showLang==='en'?'en':'fr'];
+  const all=document.querySelectorAll('.alpha-card');
+  const idx='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(l);
+  const el=all[idx];
+  if(el){el.style.borderColor='#F5A623';el.style.transform='scale(1.1)';setTimeout(()=>{el.style.transform='';el.style.borderColor='transparent';},350);}
+  const wordText=(al.words[l]||l).replace(/\s*\S*$/, '').trim();
+  speak(l+' '+al.like+' '+wordText,al.lang);
+  addScore(1);
+}
+
+/* ══════════════ TABS ══════════════ */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    tab.classList.add('active');
+    currentCat=tab.dataset.cat;
+    if(currentCat==='alphabet'){mode='discover';document.getElementById('modeDiscover').classList.add('active');document.getElementById('modeQuiz').classList.remove('active');}
+    render();
+  });
+});
+
+/* ══════════════ KIDS APPS ══════════════ */
+const KIDS_APPS=[
+  {id:'6773037110',name:'Dinosaures Kids'},
+  {id:'6772937635',name:'Animaux Kids'},
+  {id:'6772548541',name:'Lettres Kids'},
+  {id:'6772546976',name:'Chiffres Kids'},
+  {id:'6772468506',name:'Mahjong Kids'},
+];
+
+let kidsLoaded=false;
+
+function openKids(){
+  document.getElementById('kidsOverlay').style.display='flex';
+  document.getElementById('kidsPanelTitle').textContent=appLang==='fr'?'📱 Nos autres apps pour enfants':'📱 Our other kids apps';
+  document.getElementById('kidsCloseBtn').textContent=appLang==='fr'?'Fermer':'Close';
+  if(kidsLoaded)return;
+  kidsLoaded=true;
+  const panel=document.getElementById('kidsPanel');
+  panel.innerHTML='';
+  KIDS_APPS.forEach(app=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='text-align:center;cursor:pointer;';
+    wrap.onclick=()=>window.open('https://apps.apple.com/app/id'+app.id,'_system');
+    const img=document.createElement('img');
+    img.style.cssText='width:56px;height:56px;border-radius:13px;display:block;margin:0 auto 5px;background:#EDE8E0;';
+    img.alt=app.name;
+    const label=document.createElement('div');
+    label.textContent=app.name;
+    label.style.cssText='font-size:9px;font-weight:600;color:#3D2B1F;line-height:1.2;';
+    wrap.appendChild(img);wrap.appendChild(label);
+    panel.appendChild(wrap);
+    const cbName='itcb'+app.id;
+    window[cbName]=function(d){
+      if(d.results&&d.results[0])img.src=d.results[0].artworkUrl60;
+      const s=document.getElementById('s'+cbName);
+      if(s)s.remove();
+    };
+    const s=document.createElement('script');
+    s.id='s'+cbName;
+    s.src='https://itunes.apple.com/lookup?id='+app.id+'&callback='+cbName;
+    document.body.appendChild(s);
+  });
+}
+
+function closeKids(){
+  document.getElementById('kidsOverlay').style.display='none';
+}
+
+/* ══════════════ INIT ══════════════ */
+/* restaurer le score affiché */
+document.getElementById('scoreVal').textContent=score;
+document.getElementById('prog').style.width=Math.min(100,score)+'%';
+const initLvl=score<10?'🌟':score<25?'⭐⭐':score<50?'⭐⭐⭐':score<80?'⭐⭐⭐⭐':'🏆';
+document.getElementById('starDisplay').textContent=initLvl;
+
+updateStaticUI();
+render();
+</script>
+</body>
+</html>
